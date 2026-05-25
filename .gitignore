@@ -1,0 +1,32 @@
+__pycache__/
+*.pyc
+db.sqlite3
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+config/*.json
+config/occasion-*.json
+# SQLite database
+db.sqlite3
+
+# Virtual environment
+venv/
+.env/
+*.env
+
+# Django stuff
+*.log
+*.pot
+*.pyc
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+angle-484008-d7827093322e.json
