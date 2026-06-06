@@ -16,7 +16,7 @@ db.sqlite3
 venv/
 .env/
 *.env
-
+media/
 # Django stuff
 *.log
 *.pot
