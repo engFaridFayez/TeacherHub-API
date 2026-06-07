@@ -2,6 +2,8 @@ import os
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+
+from core.models import Stage
 # Create your models here.
 
 
@@ -25,4 +27,5 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=50,choices=ROLES,default="student")
     image = models.ImageField(upload_to=upload_path,blank=True,null=True)
     slogan = models.CharField(max_length=100, default="شاطر",null=True,blank=True)
+    stage = models.ForeignKey(Stage,on_delete=models.SET_NULL,related_name="students",null=True,blank=True)
 

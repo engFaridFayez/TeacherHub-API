@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from core.serializers import StageSerializer
 from users.models import CustomUser
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -44,3 +45,26 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         return user
+    
+
+class ProfileSerializer(serializers.ModelSerializer):
+    stage = StageSerializer()
+    class Meta:
+        model = CustomUser
+        fields = [
+            'username',
+            'full_name',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'email',
+            'image',
+            'address',
+            'phone',
+            'role',
+            'stage',
+            'slogan',
+            'parent_phone',
+            'whatsapp',
+
+        ]
