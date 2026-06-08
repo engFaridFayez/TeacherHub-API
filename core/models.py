@@ -1,5 +1,7 @@
 from django.db import models
-from jsonschema import ValidationError
+from django.core.exceptions import ValidationError
+
+from users.models import CustomUser
 
 # Create your models here.
 class Stage(models.Model):
@@ -65,3 +67,51 @@ class Video(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class CourseAccess(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=False)
+
+class Homework(models.Model):
+    course = models.ForeignKey(Course,on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    file = models.FileField(upload_to="homeworks/")
+
+class HomeworkSubmission(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    homework = models.ForeignKey(Homework, on_delete=models.CASCADE)
+    file = models.FileField(upload_to="submissions/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Exam(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    pass_score = models.IntegerField(default=60)
+
+    def __str__(self):
+        return self.title
+
+class Question(models.Model):
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255,null=True,blank=True)
+    text = models.TextField()
+
+    def __str__(self):
+        return self.title
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    text = models.CharField(max_length=255)
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.text
+
+class Progress(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    videos_watched = models.IntegerField(default=0)
+    exam_passed = models.BooleanField(default=False)
+    homework_done = models.BooleanField(default=False)
