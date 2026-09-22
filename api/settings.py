@@ -13,24 +13,37 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
-
+from corsheaders.defaults import default_headers
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_o!k=w)6^ovch29lewks9&3)ryuicon3rqc+h-@adwn79hwu%9'
-
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is required")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5000",
-    "http://127.0.0.1:5000",
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "range",
 ]
 
 # Application definition
@@ -101,13 +114,12 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api.wsgi.application'
-
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-from dotenv import load_dotenv
-load_dotenv()
 
 DATABASES = {
     'default': {
@@ -121,6 +133,19 @@ DATABASES = {
 }
 AXES_FAILURE_LIMIT = 5
 AXES_RESET_ON_SUCCESS = True
+
+AXES_LOCKOUT_TEMPLATE = None
+AXES_LOCKOUT_PARAMETERS = [
+    "ip_address",
+    "username",
+]
+AXES_ENABLE_ACCESS_FAILURE_LOG = True
+
+AXES_IPWARE_PROXY_COUNT = 0
+AXES_IPWARE_META_PRECEDENCE_ORDER = [
+    "HTTP_X_FORWARDED_FOR",
+    "REMOTE_ADDR",
+]
 
 
 # Password validation

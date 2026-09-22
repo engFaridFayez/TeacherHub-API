@@ -2,9 +2,10 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework.generics import ListAPIView
 from rest_framework import permissions
 from rest_framework.views import APIView, Response
-from core.models import Course, CourseAccess, Homework, HomeworkSubmission, Stage, Term, Video
-from core.serializers import CourseSerializer, StageSerializer, TermSerializer, VideoSerializer
+from core.models import Choice, Course, VideoAccess, ExamAttempt, Homework, HomeworkSubmission, Question, Stage, StudentAnswer, Term, Video,Exam
+from core.serializers import CourseSerializer, ExamSerializer, StageSerializer, StudentHomeworkSerializer, TermSerializer, VideoSerializer
 from rest_framework import status
+from django.utils import timezone
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 # Create your views here.
 class StageList(ListAPIView):
@@ -46,7 +47,7 @@ class CourseDetails(APIView):
                                     id=course_id,
                                     term_id=term_id)
         
-        has_access = CourseAccess.objects.filter(
+        has_access = VideoAccess.objects.filter(
             student = user,
             course = course,
             is_active = True
@@ -92,6 +93,8 @@ class StudentSubmitHomework(APIView):
                 {"error": "Homework not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+        # يعني مينفعش الطلب يسلم اكتر من فايل للواحب الواحد هو فايل واحد فقط
         if HomeworkSubmission.objects.filter(
             student=student,
             homework=homework
@@ -101,6 +104,7 @@ class StudentSubmitHomework(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        # خلاص اتأكدنا ان كل حاجه تمام ... اعمل create للواجب بقي للطالب 
         HomeworkSubmission.objects.create(
             student=student,
             homework=homework,
@@ -110,3 +114,115 @@ class StudentSubmitHomework(APIView):
             {"message": "Homework submitted successfully"},
             status=status.HTTP_201_CREATED
         )
+    
+class ShowStudentHomeworksubmission(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self,request):
+        student = request.user
+
+        homeworks = HomeworkSubmission.objects.filter(student=student)
+        if not homeworks.exists():
+            return Response(
+                {"message": "you don't have any homework submissions yet!"},
+                status=400
+            )
+        
+        serializer = StudentHomeworkSerializer(homeworks,many=True)
+
+        return Response({
+            "message":"your homeworks:",
+            "data":serializer.data
+        })
+    
+
+class ExamView(ListAPIView):
+    queryset = Exam.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ExamSerializer
+    
+
+class SubmitAnswer(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self,request,exam_id):
+        exam = get_object_or_404(Exam,id=exam_id)
+
+        question_id = request.data.get("question_id")
+        choice_id = request.data.get("choice_id")
+
+        question = get_object_or_404(
+            Question,
+            id = question_id,
+            exam=exam
+        )
+        choice = get_object_or_404(
+            Choice,
+            id = choice_id,
+            question=question
+        )
+
+        attempt, created = ExamAttempt.objects.get_or_create(
+            student = request.user,
+            exam = exam
+        ) 
+
+        if attempt.is_submitted:
+            return Response(
+                {"error": "Exam already submitted"},
+                status=400
+            )
+
+        StudentAnswer.objects.update_or_create(
+            attempt=attempt,
+            question=question,
+            defaults={
+                "choice": choice
+            }
+        )
+
+        return Response({"message":"Answer submitted successfully!"})
+    
+
+class SubmitExam(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self,request,exam_id):
+        attempt = get_object_or_404(
+            ExamAttempt,
+            student=request.user,
+            exam_id=exam_id
+        )
+
+        if attempt.is_submitted:
+            return Response(
+                {"error": "Exam already submitted"},
+                status=400
+            )
+        
+        score = 0
+
+        for answer in attempt.answers.all():
+            if answer.choice.is_correct:
+                score += answer.question.degree
+
+        total_degree = sum(
+            q.degree
+            for q in Question.objects.filter(exam=attempt.exam)
+        )
+
+        percentage = (score / total_degree) * 100 if total_degree > 0 else 0
+
+        is_passed = percentage >= attempt.exam.pass_percentage
+
+        attempt.score = score
+        attempt.percentage = percentage
+        attempt.is_passed = is_passed
+        attempt.is_submitted = True
+        attempt.submitted_at = timezone.now()
+        attempt.save()
+
+        return Response({
+            "score": score,
+            "message": "Exam submitted successfully"
+        })

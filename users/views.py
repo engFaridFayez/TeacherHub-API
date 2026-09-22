@@ -17,3 +17,5 @@ class Me(APIView):
     def get(self,request):
         serializer = ProfileSerializer(request.user,context={"request":request})
         return Response(serializer.data)
+
+
