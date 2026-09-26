@@ -144,9 +144,24 @@ class Exam(models.Model):
     def __str__(self):
         return self.title
 
+class QuestionTitle(models.Model):
+    ANSWER_TYPE_CHOICES = [
+        ("choice", "Choice"),
+        ("text", "Text"),
+    ]
+
+    name = models.CharField(max_length=255)
+
+    answer_type = models.CharField(
+        max_length=10,
+        choices=ANSWER_TYPE_CHOICES
+    )
+
+    def __str__(self):
+        return self.name
 class Question(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255,null=True,blank=True)
+    title = models.ForeignKey(QuestionTitle, on_delete=models.PROTECT)
     text = models.TextField()
     degree = models.PositiveIntegerField(default=1)
 
