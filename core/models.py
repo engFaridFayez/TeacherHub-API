@@ -110,10 +110,12 @@ class Homework(models.Model):
         ("image", "Image"),
     ]
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="homeworks")
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255,null=True,blank=True)
     submission_type = models.CharField(
         max_length=10,
-        choices=SUBMISSION_TYPES
+        choices=SUBMISSION_TYPES,
+        null=True,
+        blank=True
     )
 
 #Student HW Submission
@@ -138,7 +140,7 @@ class HomeworkSubmission(models.Model):
 
 class Exam(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE,related_name="exams")
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255,null=True,blank=True)
     pass_percentage = models.PositiveIntegerField(default=60)
 
     def __str__(self):
@@ -161,7 +163,7 @@ class QuestionTitle(models.Model):
         return self.name
 class Question(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    title = models.ForeignKey(QuestionTitle, on_delete=models.PROTECT)
+    title = models.ForeignKey(QuestionTitle, on_delete=models.PROTECT,null=True,blank=True)
     text = models.TextField()
     degree = models.PositiveIntegerField(default=1)
 
@@ -223,7 +225,14 @@ class StudentAnswer(models.Model):
 
     choice = models.ForeignKey(
         Choice,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    text_answer = models.TextField(
+        null=True,
+        blank=True
     )
 
     answered_at = models.DateTimeField(auto_now_add=True)
