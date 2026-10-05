@@ -137,6 +137,9 @@ class HomeworkSubmission(models.Model):
             raise ValidationError(
                 "you must submit you homework image"
             )
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 class Exam(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE,related_name="exams")
@@ -209,7 +212,7 @@ class ExamAttempt(models.Model):
     percentage = models.FloatField(default=0)
     is_passed = models.BooleanField(default=False)
     class Meta:
-        unique_together = ('student', 'exam')
+        unique_together = ('student', 'exam') # لو الطالب هيقدر يعيد الامتحان يبقي السطر ده يتشال
 
 class StudentAnswer(models.Model):
     attempt = models.ForeignKey(
