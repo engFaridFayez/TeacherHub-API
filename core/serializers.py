@@ -282,3 +282,13 @@ class ChoiceWriteSerializer(serializers.ModelSerializer):
             'text',
             'is_correct',
         ]
+
+class StudentAnswerWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StudentAnswer
+        fields = [
+            'question',
+            'choice',
+            'text_answer',
+        ]

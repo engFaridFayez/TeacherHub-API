@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.serializers import StageSerializer
+from core.serializers import StageReadSerializer
 from users.models import CustomUser
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
 
 class ProfileSerializer(serializers.ModelSerializer):
-    stage = StageSerializer()
+    stage = StageReadSerializer()
     class Meta:
         model = CustomUser
         fields = [
