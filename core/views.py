@@ -18,7 +18,7 @@ class StageViewSet(viewsets.ModelViewSet):
         return StageWriteSerializer
 
 class TermViewSet(viewsets.ModelViewSet):
-    queryset = Term.objects.prefetch_related("stage")
+    queryset = Term.objects.select_related("stage")
 
     def get_serializer_class(self):
         if self.action in ['list','retrieve']:

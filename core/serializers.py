@@ -17,7 +17,7 @@ class StageReadSerializer(serializers.ModelSerializer):
         ]
 
 class TermReadSerializer(serializers.ModelSerializer):
-    
+    stage = serializers.CharField(source="stage.name")
     class Meta:
         model = Term
         fields = [
